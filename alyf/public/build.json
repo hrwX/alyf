@@ -1,0 +1,6 @@
+{
+	"js/web_form.min.js": [
+		"public/js/alyf/utils/datetime.js",
+		"public/js/alyf/web_form/webform_script.js"
+	]
+}
