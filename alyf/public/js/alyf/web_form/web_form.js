@@ -120,12 +120,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		$('.web-form-footer').after(`
 			<div id="form-step-footer" class="pull-right">
-				<button id="previous-button" class="btn btn-primary btn-sm ml-2">${__("Previous")}</button>
-				<button id="next-button" class="btn btn-primary btn-sm ml-2">${__("Next")}</button>
+				<button class="btn btn-primary btn-previous btn-sm ml-2">${__("Previous")}</button>
+				<button class="btn btn-primary btn-next btn-sm ml-2">${__("Next")}</button>
 			</div>
 		`);
 
-		$('#previous-button').on('click', function () {
+		$('.btn-previous').on('click', function () {
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return;
@@ -133,7 +133,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			me.toggle_step();
 		});
 
-		$('#next-button').on('click', function () {
+		$('.btn-next').on('click', function () {
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return;
@@ -159,8 +159,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				if (field.df.reqd && is_null(typeof value === 'string' ? strip_html(value) : value)) errors.push(__(field.df.label));
 
 				if (field.df.reqd && field.df.fieldtype === 'Text Editor' && is_null(strip_html(cstr(value)))) errors.push(__(field.df.label));
-
-				// if (!is_null(value)) ret[field.df.fieldname] = value;
 			}
 		}
 
@@ -182,17 +180,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		let sections = $('div.form-section').length
 
-		if (this.current_section == 0) {
-			$('#previous-button').hide();
-		} else {
-			$('#previous-button').show();
-		}
-
-		if (this.current_section < sections - 1) {
-			this.show_next_and_hide_save_button();
-		} else {
-			this.show_save_and_hide_next_button();
-		}
+		this.current_section == 0 ? $('.btn-previous').hide() : $('.btn-previous').show();;
+		this.current_section < sections - 1 ? this.show_next_and_hide_save_button() : this.show_save_and_hide_next_button();
 
 		this.hide_sections(sections);
 		this.show_section();
@@ -211,12 +200,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	show_save_and_hide_next_button() {
-		$('#next-button').hide();
+		$('.btn-next').hide();
 		$('.web-form-footer').show();
 	}
 
 	show_next_and_hide_save_button() {
-		$('#next-button').show();
+		$('.btn-next').show();
 		$('.web-form-footer').hide();
 	}
 
