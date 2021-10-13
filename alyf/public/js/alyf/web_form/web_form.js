@@ -153,7 +153,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			if (!fieldname) continue;
 
 			field = this.fields_dict[fieldname];
-			console.log(field)
+
 			if (field.get_value) {
 				let value = field.get_value();
 				if (field.df.reqd && is_null(typeof value === 'string' ? strip_html(value) : value)) errors.push(__(field.df.label));
@@ -189,15 +189,35 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		}
 
 		if (this.current_section < sections - 1) {
-			$('#next-button').show();
-			$('.web-form-footer').hide();
+			this.show_next_and_hide_save_button();
 		} else {
-			$('#next-button').hide();
-			$('.web-form-footer').show();
+			this.show_save_and_hide_next_button();
 		}
 
 		this.hide_sections(sections);
 		this.show_section();
+		this.validate_if_next_section_is_empty()
+	}
+
+	validate_if_next_section_is_empty() {
+		if (this.current_section + 1 > this.sections.length) return true;
+
+		let section = $(`.form-section:eq(${this.current_section+1})`);
+		let visible_controls = section.find(".frappe-control:not(.hide-control)");
+
+		if (!visible_controls.length) {
+			this.show_save_and_hide_next_button();
+		}
+	}
+
+	show_save_and_hide_next_button() {
+		$('#next-button').hide();
+		$('.web-form-footer').show();
+	}
+
+	show_next_and_hide_save_button() {
+		$('#next-button').show();
+		$('.web-form-footer').hide();
 	}
 
 	show_section() {

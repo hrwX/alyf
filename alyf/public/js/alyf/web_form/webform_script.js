@@ -12,8 +12,6 @@ frappe.ready(function() {
 	let doc_name = query_params.name || '';
 	let is_new = query_params.new;
 
-    console.log("-=-00dhasdak")
-
 	if (login_required) show_login_prompt();
 	else if (is_list) show_grid();
 	else show_form(webform_doctype, webform_name, is_new);
