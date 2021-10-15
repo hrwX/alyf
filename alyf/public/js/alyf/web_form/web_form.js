@@ -31,7 +31,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (this.is_new) this.setup_cancel_button();
 		this.setup_primary_action();
 		this.setup_previous_next_button();
-		this.toggle_step();
+		this.toggle_section();
 		$(".link-btn").remove();
 
 		// webform client script
@@ -129,16 +129,32 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return;
-			me.current_section = me.current_section > 0 ? me.current_section - 1 : me.current_section;
-			me.toggle_step();
+
+			for (let idx = me.current_section; idx < me.sections.length; idx--) {
+				let is_empty = me.is_previous_section_empty(idx);
+				me.current_section = me.current_section > 0 ? me.current_section - 1 : me.current_section;
+
+				if (!is_empty) {
+					break
+				}
+			}
+			me.toggle_section();
 		});
 
 		$('.btn-next').on('click', function () {
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return;
-			me.current_section += 1;
-			me.toggle_step();
+
+			for (let idx = me.current_section; idx < me.sections.length; idx++) {
+				let is_empty = me.is_next_section_empty(idx);
+				me.current_section = me.current_section < me.sections.length ? me.current_section + 1 : me.current_section;
+
+				if (!is_empty) {
+					break
+				}
+			}
+			me.toggle_section();
 		});
 	}
 
@@ -175,28 +191,39 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		return true;
 	}
 
-	toggle_step() {
+	toggle_section() {
 		if (!this.is_multi_step_form) return;
 
-		let sections = $('div.form-section').length
-
-		this.current_section == 0 ? $('.btn-previous').hide() : $('.btn-previous').show();;
-		this.current_section < sections - 1 ? this.show_next_and_hide_save_button() : this.show_save_and_hide_next_button();
-
-		this.hide_sections(sections);
+		this.toggle_previous_button();
+		this.hide_sections();
 		this.show_section();
-		this.validate_if_next_section_is_empty()
+
+		for (let idx = this.current_section; idx < this.sections.length; idx++) {
+			if (this.is_next_section_empty(idx)) {
+				this.show_save_and_hide_next_button();
+			} else {
+				this.show_next_and_hide_save_button();
+				break;
+			}
+		}
 	}
 
-	validate_if_next_section_is_empty() {
-		if (this.current_section + 1 > this.sections.length) return true;
+	is_next_section_empty(section) {
+		if (section + 1 > this.sections.length) return true;
 
-		let section = $(`.form-section:eq(${this.current_section+1})`);
-		let visible_controls = section.find(".frappe-control:not(.hide-control)");
+		let _section = $(`.form-section:eq(${section + 1})`);
+		let visible_controls = _section.find(".frappe-control:not(.hide-control)");
 
-		if (!visible_controls.length) {
-			this.show_save_and_hide_next_button();
-		}
+		return !visible_controls.length ? true : false;
+	}
+
+	is_previous_section_empty(section) {
+		if (section - 1 > this.sections.length) return true;
+
+		let _section = $(`.form-section:eq(${section - 1})`);
+		let visible_controls = _section.find(".frappe-control:not(.hide-control)");
+
+		return !visible_controls.length ? true : false;
 	}
 
 	show_save_and_hide_next_button() {
@@ -209,12 +236,16 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$('.web-form-footer').hide();
 	}
 
+	toggle_previous_button() {
+		this.current_section == 0 ? $('.btn-previous').hide() : $('.btn-previous').show();
+	}
+
 	show_section() {
 		$(`.form-section:eq(${this.current_section})`).show();
 	}
 
-	hide_sections(sections) {
-		for (let idx = 0; idx < sections; idx++) {
+	hide_sections() {
+		for (let idx in this.sections) {
 			if (idx !== this.current_section) {
 				$(`.form-section:eq(${idx})`).hide();
 			}
