@@ -24,7 +24,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	make() {
 		super.make();
+		this.set_sections();
 		this.set_field_values();
+		this.setup_listeners();
 		if (this.introduction_text) this.set_form_description(this.introduction_text);
 		if (this.allow_print && !this.is_new) this.setup_print_button();
 		if (this.allow_delete && !this.is_new) this.setup_delete_button();
@@ -111,6 +113,26 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		);
 	}
 
+	setup_listeners() {
+		// Event listener for triggering Save/Next button for Multi Step Forms
+		// Do not use `on` event here since that can be used by user which will render this function useless
+		// setTimeout has 200ms delay so that all the base_control triggers for the fields have been run
+		let me = this;
+
+		if (!me.is_multi_step_form) {
+			return;
+		}
+
+		for (let field of $(".input-with-feedback")) {
+			$(field).change((e) => {
+				setTimeout(() => {
+					e.stopPropagation();
+					me.toggle_buttons();
+				}, 200);
+			});
+		}
+	}
+
 	setup_previous_next_button() {
 		let me = this;
 
@@ -191,13 +213,22 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		return true;
 	}
 
+	set_sections() {
+		if (this.sections.length) return;
+
+		this.sections = $(`.form-section`);
+	}
+
 	toggle_section() {
 		if (!this.is_multi_step_form) return;
 
 		this.toggle_previous_button();
 		this.hide_sections();
 		this.show_section();
+		this.toggle_buttons();
+	}
 
+	toggle_buttons() {
 		for (let idx = this.current_section; idx < this.sections.length; idx++) {
 			if (this.is_next_section_empty(idx)) {
 				this.show_save_and_hide_next_button();
@@ -245,7 +276,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	hide_sections() {
-		for (let idx in this.sections) {
+		for (let idx=0; idx < this.sections.length; idx++) {
 			if (idx !== this.current_section) {
 				$(`.form-section:eq(${idx})`).hide();
 			}
